@@ -28,7 +28,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://localhost:8090",
+        url: "https://i-shop-server.onrender.com/",
       },
     ],
   },
