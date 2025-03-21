@@ -6,7 +6,13 @@
     "i-shope-server": "file:",
     "mongodb": "^6.13.0",
     "mongoose": "^8.10.1",
-    "razorpay": "^2.9.5"
+    "netlify-cli": "^18.1.0",
+    "netlify-lambda": "^2.0.16",
+    "node-cache": "^5.1.2",
+    "razorpay": "^2.9.5",
+    "serverless-http": "^3.2.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "type": "module",
   "name": "i-shope-server",
@@ -17,5 +23,8 @@
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "serverless-dotenv-plugin": "^6.0.0"
+  }
 }
