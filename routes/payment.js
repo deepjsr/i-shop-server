@@ -1,18 +1,15 @@
 import express from 'express';
 import Razorpay from 'razorpay';
-import 'dotenv/config.js';
 import crypto from 'crypto';
 import Payment from '../models/payment.js';
-
+import dotenv from 'dotenv';
+dotenv.config();
 const router = express.Router();
 
 // ROUTE 1
 router.get('/get-payment', (req, res) => {
   res.json('Payment Details');
 });
-
-console.log('Razorpay Key ID:', process.env.RAZORPAY_KEY_ID);
-console.log('Razorpay Secret:', process.env.RAZORPAY_SECRET);
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
