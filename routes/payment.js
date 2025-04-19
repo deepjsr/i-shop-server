@@ -11,6 +11,9 @@ router.get('/get-payment', (req, res) => {
   res.json('Payment Details');
 });
 
+console.log('Razorpay Key ID:', process.env.RAZORPAY_KEY_ID);
+console.log('Razorpay Secret:', process.env.RAZORPAY_SECRET);
+
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_SECRET,
@@ -23,15 +26,15 @@ router.post('/order', (req, res) => {
   const { amount } = req.body;
   try {
     const options = {
-      amount: Number(amount * 100),
+      amount: Math.round(amount * 100), // Ensure amount is an integer
       currency: 'INR',
       receipt: crypto.randomBytes(10).toString('hex'),
     };
 
     razorpayInstance.orders.create(options, (error, order) => {
       if (error) {
-        console.log(error);
-        return res.status(500).json({ message: 'Something went wrong' });
+        console.error('Razorpay API Error:', error); // Log detailed error
+        return res.status(500).json({ message: 'Something went wrong', error });
       }
       console.log(order);
       res.status(200).json({
@@ -39,7 +42,8 @@ router.post('/order', (req, res) => {
       });
     });
   } catch (error) {
-    console.log(error, 'Error');
+    console.error('Unexpected Error:', error); // Log unexpected errors
+    res.status(500).json({ message: 'Internal Server Error!' });
   }
 });
 
