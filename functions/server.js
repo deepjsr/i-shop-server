@@ -1,54 +1,78 @@
-// const express = require('express');
-// const { mongoose } = require('mongodb');
-// const cors = require('cors');
-
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
-import paymentRoutes from "./routes/payment.js";
+const serverless = require("serverless-http");
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const NodeCache = require("node-cache");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
 
 dotenv.config();
 
-// const connectionString = 'mongodb://127.0.0.1:27017';
-const connectionString = process.env.MONGO_URI;
+const connectionString = process.env.MONGO_URI || "mongodb://127.0.0.1:27017";
 
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors()); // Enable CORS globally
+app.use(cors({ origin: "*" })); // Allow all origins
+const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 mins
 
-app.use("/api/payment", paymentRoutes); // Register payment routes
+// Swagger setup
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: "3.0.0",
+    info: {
+      title: "i-Shop API",
+      version: "1.0.0",
+      description: "API documentation for i-Shop",
+    },
+    servers: [
+      {
+        url: "http://localhost:8090",
+      },
+    ],
+  },
+  apis: ["./functions/server.js"], // Path to the API docs
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.get("/products", async (req, res) => {
+  const cachedData = cache.get("products");
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
   try {
     await mongoose.connect(connectionString);
     const dbo = mongoose.connection.db;
-    const documents = await dbo.collection("tblproducts").find({}).toArray();
+    const documents = await dbo
+      .collection("tblproducts")
+      .find({})
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+    cache.set("products", documents);
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error fetching products" });
   }
 });
 
-/**
- * @swagger
- * /categories:
- *   get:
- *     summary: Retrieve a list of categories
- *     responses:
- *       200:
- *         description: A list of All categories
- *       500:
- *         description: Error fetching categories
- */
 app.get("/categories", async (req, res) => {
   try {
     await mongoose.connect(connectionString);
     const dbo = mongoose.connection.db;
     const documents = await dbo.collection("tblcategories").find({}).toArray();
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error fetching categories" });
   }
@@ -63,6 +87,7 @@ app.get("/categories/:categoryname", async (req, res) => {
       .find({ CategoryName: req.params.categoryname })
       .toArray();
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error fetching categories" });
   }
@@ -74,6 +99,7 @@ app.get("/admin", async (req, res) => {
     const dbo = mongoose.connection.db;
     const documents = await dbo.collection("tbladmin").find({}).toArray();
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error fetching admin data" });
   }
@@ -85,8 +111,9 @@ app.get("/customers", async (req, res) => {
     const dbo = mongoose.connection.db;
     const documents = await dbo.collection("tblcustomers").find({}).toArray();
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
-    res.status(500).send({ message: "Error fetching Customers data" });
+    res.status(500).send({ message: "Error fetching customers" });
   }
 });
 
@@ -99,8 +126,9 @@ app.get("/customers/:id", async (req, res) => {
       .find({ UserId: req.params.id })
       .toArray();
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
-    res.status(500).send({ message: "Error fetching customer data" });
+    res.status(500).send({ message: "Error fetching customer by ID" });
   }
 });
 
@@ -113,6 +141,7 @@ app.get("/products/:id", async (req, res) => {
       .find({ Id: parseInt(req.params.id) })
       .toArray();
     res.send(documents);
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error fetching product by ID" });
   }
@@ -132,6 +161,7 @@ app.post("/adminregister", async (req, res) => {
     await dbo.collection("tbladmin").insertOne(data);
     console.log("Record Inserted");
     res.send({ message: "Admin Registered Successfully" });
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error registering admin" });
   }
@@ -154,7 +184,8 @@ app.post("/itemregister", async (req, res) => {
     };
     await dbo.collection("tblproducts").insertOne(data);
     console.log("Record Inserted");
-    res.send({ message: "Customer Registered Successfully" });
+    res.send({ message: "Item Registered Successfully" });
+    mongoose.connection.close();
   } catch (err) {
     res.status(500).send({ message: "Error registering item" });
   }
@@ -178,9 +209,10 @@ app.post("/customerregister", async (req, res) => {
     await dbo.collection("tblcustomers").insertOne(data);
     console.log("Record Inserted");
     res.send({ message: "Customer Registered Successfully" });
+    mongoose.connection.close();
   } catch (err) {
-    res.status(500).send({ message: "Error registering admin" });
+    res.status(500).send({ message: "Error registering customer" });
   }
 });
 
-app.listen(8080, () => console.log(`Server Listening: http://127.0.0.1:8080`));
+module.exports.handler = serverless(app);

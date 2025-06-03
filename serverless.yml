@@ -1,0 +1,21 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: dcompany
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: i-shope-server
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  memorySize: 8096
+  timeout: 15
+  stage: dev
+
+functions:
+  hello:
+    handler: index.hello
+
+plugins:
+  - serverless-dotenv-plugin # If you use .env variables
+package:
+  excludeDevDependencies: true

@@ -1,9 +1,9 @@
 import express from 'express';
 import Razorpay from 'razorpay';
-import 'dotenv/config.js';
 import crypto from 'crypto';
 import Payment from '../models/payment.js';
-
+import dotenv from 'dotenv';
+dotenv.config();
 const router = express.Router();
 
 // ROUTE 1
@@ -23,15 +23,15 @@ router.post('/order', (req, res) => {
   const { amount } = req.body;
   try {
     const options = {
-      amount: Number(amount * 100),
+      amount: Math.round(amount * 100), // Ensure amount is an integer
       currency: 'INR',
       receipt: crypto.randomBytes(10).toString('hex'),
     };
 
     razorpayInstance.orders.create(options, (error, order) => {
       if (error) {
-        console.log(error);
-        return res.status(500).json({ message: 'Something went wrong' });
+        console.error('Razorpay API Error:', error); // Log detailed error
+        return res.status(500).json({ message: 'Something went wrong', error });
       }
       console.log(order);
       res.status(200).json({
@@ -39,7 +39,8 @@ router.post('/order', (req, res) => {
       });
     });
   } catch (error) {
-    console.log(error, 'Error');
+    console.error('Unexpected Error:', error); // Log unexpected errors
+    res.status(500).json({ message: 'Internal Server Error!' });
   }
 });
 

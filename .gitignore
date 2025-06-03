@@ -1,4 +1,8 @@
 node_modules
+<<<<<<< HEAD
 
 # Local Netlify folder
 .netlify
+=======
+.env
+>>>>>>> 5ba570840cae829d0bdeb4fe75dafb12bc31a721
