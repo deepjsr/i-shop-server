@@ -94,7 +94,7 @@ app.get("/products", async (req, res) => {
  *     summary: Retrieve a list of categories
  *     responses:
  *       200:
- *         description: A list of categories
+ *         description: A list of All categories
  *       500:
  *         description: Error fetching categories
  */
