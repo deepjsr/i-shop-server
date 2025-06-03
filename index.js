@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import NodeCache from "node-cache";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 dotenv.config();
 
@@ -16,6 +18,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({ origin: "*" })); // Allow all origins
 const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 mins
+
+// Define __filename and __dirname for ES module compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Swagger setup
 const swaggerOptions = {
@@ -32,7 +38,7 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ["./index.js"], // Path to the API docs
+  apis: [__filename], // Now __filename works in ES module
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
