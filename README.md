@@ -104,9 +104,9 @@ JWT_SECRET=your_secret_key
 ```
 
 ### 4️⃣ Run Server
-
+```
 npm start
-
+```
 
 Server runs at:
 http://localhost:5000
@@ -116,6 +116,7 @@ http://localhost:5000
 
 ## 📁 Project Structure
 
+```
 i-shop-server/
 │
 ├── controllers/
@@ -125,7 +126,8 @@ i-shop-server/
 ├── config/
 ├── server.js
 └── package.json
-
+    
+```
 
 ---
 
@@ -146,7 +148,3 @@ i-shop-server/
 Junior Full Stack Developer (React | Node.js)
 
 Portfolio: https://deep-dev.in/  
-GitHub: https://github.com/deepjsr
-
----
-
